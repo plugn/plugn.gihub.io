@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>button JS API test</title>
+	<script src="http://js-api.maps.sputnik.ru/v0.3/sputnik_maps_bundle.min.js"></script>
+  <script src="https://rawgit.com/sputnik-maps/jsonp/master/jsonp.js"></script>
+	<link href="http://js-api.maps.sputnik.ru/v0.3/sputnik_maps_bundle.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="map" style="position: absolute; top:0; left:0; right:0;bottom:0;"></div>
+<script>
+
+	var wazeAPI = 'https://www.waze.com/row-rtserver/web/TGeoRSS?';
+	var jsonpProxies = {
+		'json2jsonp2': 'http://json2jsonp.com/',
+		'afeld': 'https://jsonp.afeld.me/'
+	};
+	var trafficStyle = { weight: 4, opacity: 0.9 };
+	var trafficColors = {
+		'1': {color: '#00ff00'},
+		'2': {color: '#80ff00'},
+		'3': {color: '#ffff00'},
+		'4': {color: '#ff8000'},
+		'5': {color: '#ff0000'}
+	};
+
+	var map = L.sm.map('map');
+	map.on('moveend', onViewChanged);
+	onViewChanged();
+
+	var trafficLayer = L.layerGroup().addTo(map);
+
+
+function onViewChanged() {
+		var url = prepareURL();
+		var options = {
+			url: url,
+			success: renderTraffic
+		};
+
+		
+        JSONP(options); //L.sm.jsonp(options);
+}
+
+function prepareURL() {
+	var bounds = map.getBounds(),
+			nw = bounds.getNorthWest(),
+			se = bounds.getSouthEast();
+	var bbox = {
+		top: nw.lat,
+		bottom: se.lat,
+		left: nw.lng,
+		right: se.lng
+	};
+	var cfg = {
+		mj: 200,	// traffic jams
+		ma: 5,		// alerts
+		mu: 5,		// users
+		'_': Date.now()
+	};
+	var params = L.extend({}, bbox, cfg),
+		paramsList = [];
+	for (var k in params) {
+		paramsList.push('' + k + '=' + params[k]);
+	}
+	var paramStr = paramsList.join('&');
+	return jsonpProxies.json2jsonp2 + '?url=' + encodeURIComponent(wazeAPI + paramStr);
+}
+
+function renderTraffic(response) {
+	if (!response || !response.jams) { return; }
+
+	var trafficData = response.jams.filter(function(item) {
+		return item && item.blockType && item.blockType=="ROAD_CLOSED_EVENT" ? false : true;
+	});
+
+	if (trafficData.length) {
+		trafficLayer.clearLayers();
+	}
+
+	var obj, latlngs, line, style;
+	for (var i = 0; i < trafficData.length; i++) {
+		obj = trafficData[i];
+		if (obj.line && obj.line.length && obj.level) {
+			latlngs =  obj.line.map(function(coord){
+				return [coord.y, coord.x];
+			});
+			line = L.polyline(latlngs);
+			if (line) {
+				style = L.extend({}, trafficStyle, trafficColors[''+obj.level]);
+				line.setStyle(style);
+				trafficLayer.addLayer(line);
+			}
+		}
+	}
+
+}
+
+function ajax (options) {
+	if (!(options && options.url && options.success)) {
+		throw new Error('(!) ajax (options) options required properties: `url`, `success`');
+	}
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+			options.success();
+		}
+	};
+	xhr.open(options.method || 'GET', options.url);
+	xhr.send();
+}
+
+
+
+</script>
+
+</body>
+</html>
