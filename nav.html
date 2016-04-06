@@ -57,6 +57,8 @@ L.Map.include({
 	var map = L.sm.map('map');
 	map.on('moveend', onViewChanged);
 	onViewChanged();
+	initNav();
+
 
 	var trafficLayer = L.layerGroup().addTo(map);
 
@@ -203,7 +205,7 @@ function initNav() {
 	map.locate({
 		watch: true,
 		setView: true,
-		maxZoom: 16,
+		maxZoom: 17,
 		enableHighAccuracy: true
 		// maximumAge: 1000
 	});
