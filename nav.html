@@ -158,6 +158,8 @@ function markerIcon() {
     return myIcon;
 }
 
+dash = L.DomUtil.get('dashboard');
+
 function rotateElement(selector, amount) {
 	var el = document.querySelector(selector);
 	if (! (el && el.style && el.style.transform) ) {
