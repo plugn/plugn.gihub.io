@@ -1,1 +1,1 @@
-# plugn.gihub.io
+# plugn.github.io
