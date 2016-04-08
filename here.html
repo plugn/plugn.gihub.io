@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>here traffic map</title>
+	<script src="http://js-api.maps.sputnik.ru/v0.3/sputnik_maps_bundle.min.js"></script>
+	<link href="http://js-api.maps.sputnik.ru/v0.3/sputnik_maps_bundle.min.css" rel="stylesheet">
+	
+</head>
+<body>
+
+<div id="map" style="position: absolute; top:0; left:0; right:0;bottom:0;"></div>
+<script>
+var map = L.sm.map('map');
+var hmt = 'http://{s}.traffic.maps.api.here.com/maptile/2.1/traffictile/newest/normal.day/{z}/{x}/{y}/{size}/png8?app_id={app_id}&app_code={app_code}&lg=rus&ppi=72&tprof=PrtlHere';
+var tl = L.tileLayer(hmt, {subdomains:'1234',size: 512, app_id:'xWVIueSv6JL0aJ5xqTxb', app_code: 'djPZyynKsbTjIUDOBcHZ2g'}); 
+tl.addTo(map);
+</script>
+
+</body>
+</html>
