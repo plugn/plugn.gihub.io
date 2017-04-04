@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>JS API sandbox sample</title>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js"></script>
+
+</head>
+<body style="height: 100%; overflow: hidden;">
+
+<div style="position: absolute; top:0; left:0; right:50%;bottom:0;">
+	<pre id="editor" style="position:absolute; margin: 0; bottom: 20px; left:0; right: 0; top: 0;"></pre>
+
+	<div style="position: absolute; bottom: 0;">
+		<select id="theme" onchange="setTheme(this.value);"></select>
+		<select name="sample" onchange="openSample(this.value);" value="">
+			<option value="">-----------------------------</option>
+			<option value="empty.html">empty</option>
+			<option value="button.dev.html">button.dev.html</option>
+			<option value="traffic.html">traffic.html</option>
+			<option value="route.html">route.html</option>
+			<option value="../docs/examples/map.html">../docs/examples/map.html</option>
+			<option value="../docs/examples/marker.html">../docs/examples/marker.html</option>
+			<option value="../docs/examples/geojson.html">../docs/examples/geojson.html</option>
+		</select>
+		<input type="button" onclick="render();" value="render">
+	</div>
+</div>
+<div style="position: absolute; top:0; left:50%; right:0; bottom:0;">
+	<iframe id="result" style="height: 100%; width: 100%; background-color: #eeeeee; border-width: 0 0 0 1px;"
+			seamless="seamless"></iframe>
+</div>
+
+<script>
+	var editor;
+	function openSample(sampleURL) {
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+				editor.setValue(xhr.responseText);
+				editor.clearSelection();
+				render();
+			}
+		};
+		xhr.open('GET', sampleURL);
+		xhr.send();
+	}
+
+	function render() {
+		try {
+			var txr = editor.getValue();
+			var doc = document.getElementById('result').contentWindow.document;
+			doc.open();
+			doc.write(txr);
+			doc.close();
+		} catch (e) {
+			console.log('(!) sandbox render() Exception:', e);
+		}
+	}
+
+	editor = ace.edit('editor');
+	editor.getSession().setMode('ace/mode/html');
+	editor.setShowPrintMargin(false);
+	editor.$blockScrolling = Infinity;
+	editor.on('change', onCodeUpdate);
+
+	var themePref = 'chrome';
+	var aceThemes = [
+		'ambiance', 'chaos', 'chrome', 'clouds', 'clouds_midnight', 'cobalt', 'crimson_editor',
+		'dawn', 'dreamweaver', 'eclipse', 'github', 'idle_fingers', 'iplastic', 'katzenmilch', 'kr_theme', 'kuroir',
+		'merbivore', 'merbivore_soft', 'mono_industrial', 'monokai', 'pastel_on_dark', 'solarized_dark', 'solarized_light', 'sqlserver',
+		'terminal', 'textmate', 'tomorrow', 'tomorrow_night', 'tomorrow_night_blue', 'tomorrow_night_bright',
+		'tomorrow_night_eighties', 'twilight', 'vibrant_ink', 'xcode'
+	];
+	var themeEl = document.getElementById('theme');
+
+	for (var t = 0; t < aceThemes.length; t++) {
+		var themeOption = document.createElement('option');
+		themeOption.value = aceThemes[t];
+		themeOption.text = aceThemes[t];
+		themeEl.appendChild(themeOption);
+	}
+	themeEl.value = themePref;
+	setTheme(themePref);
+
+	function setTheme(theme) {
+		editor.setTheme('ace/theme/'+theme);
+	}
+
+	var updateTimeout = 3000,
+		lastUpdated = Date.now(), timeout = null;
+
+	function onCodeUpdate () {
+		var now  = Date.now();
+		// console.log('now - lastUpdated', now - lastUpdated, ' < ', updateTimeout, ' = ', now - lastUpdated < updateTimeout );
+		if (timeout) {
+			clearTimeout(timeout);
+		}
+		if (now - lastUpdated < updateTimeout) {
+			timeout = setTimeout(onCodeUpdate, updateTimeout);
+		} else {
+			lastUpdated = now;
+			render();
+		}
+	}
+
+
+
+</script>
+</body>
+</html>
